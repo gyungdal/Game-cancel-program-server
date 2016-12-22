@@ -1,7 +1,1 @@
-﻿  main.c
-d:\language\c++\gamecancelserver\server\main.c(146): warning C4047: '함수': 'char *'의 간접 참조 수준이 'int'과(와) 다릅니다.
-d:\language\c++\gamecancelserver\server\main.c(146): warning C4024: 'recv': 형식 및 실제 매개 변수 2의 형식이 서로 다릅니다.
-d:\language\c++\gamecancelserver\server\main.c(155): warning C4047: '함수': 'char *'의 간접 참조 수준이 'int'과(와) 다릅니다.
-d:\language\c++\gamecancelserver\server\main.c(155): warning C4024: 'recv': 형식 및 실제 매개 변수 2의 형식이 서로 다릅니다.
-  Server.vcxproj -> D:\Language\C++\gameCancelServer\Debug\Server.exe
-  Server.vcxproj -> D:\Language\C++\gameCancelServer\Debug\Server.pdb (Full PDB)
+﻿LINK : fatal error LNK1168: D:\Language\C++\gameCancelServer\Debug\Server.exe을(를) 쓰기용으로 열 수 없습니다.

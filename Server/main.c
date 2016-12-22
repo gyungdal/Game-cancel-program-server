@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <direct.h>
 #include <string.h>
+#include <inttypes.h>
 
 #pragma warning(disable:4996)
 #pragma comment(lib, "ws2_32.lib")
@@ -140,42 +141,24 @@ DWORD WINAPI Update(LPVOID lpParam)
 				fp = fopen("ProcessName.txt", "rb");
 			else if (i == 2)
 				fp = fopen("Hash.txt", "rb");
-
-			int clntlensize = 0;
-			char *clntlen = NULL;
-			recv(Clnt_sock, clntlensize, sizeof(clntlensize), 0);
-			recv(Clnt_sock, clntlen, clntlensize, 0);
-
-			char* servlen = NULL;
 			fseek(fp, 0, SEEK_END);
+			char* clntlen = (char*)calloc(64, 1);
+			char* servlen = (char*)calloc(64, 1);
 			itoa(ftell(fp), servlen, 10);
-
-			int clntcntsize = 0;
-			char *clntcnt = NULL;
-			recv(Clnt_sock, clntcntsize, sizeof(clntcntsize), 0);
-			recv(Clnt_sock, clntcnt, clntcntsize, 0);
-
-			int cnt = 0;
-			char temp[80];
-			char* servcount = NULL;
-			fseek(fp, 0, SEEK_SET);
-			while (!feof(fp))
-			{
-				fscanf(fp, "%s\n", &temp);
-				++cnt;
-			}
-			itoa(cnt, servcount, 10);
-
-			if (strcmp(clntlen, servlen) == 0 || strcmp(clntcnt, servcount) == 0)
+			recv(Clnt_sock, clntlen, 64, 0); // length file length
+			if (strcmp(clntlen, servlen) == 0)
 				send(Clnt_sock, "OK", 3, 0);
 			else
 			{
+				send(Clnt_sock, "NO", 3, 0); // < 이런 부분 3로 줄이고
+				char* temp = (char*)calloc(atoi(servlen), 1);
 				fseek(fp, 0, SEEK_SET);
-				while (!feof(fp))
-				{
-					fscanf(fp, "%s\n", &senddata);
-					send(Clnt_sock, senddata, strlen(senddata), 0);
-				}
+				fread(temp, sizeof(char), atoi(servlen), fp);
+				send(Clnt_sock, servlen, 64, 0);
+				send(Clnt_sock, temp, atoi(servlen), 0);
+				free(temp);
+				free(clntlen);
+				free(servlen);
 			}
 		}
 		closesocket(Clnt_sock);
