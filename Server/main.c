@@ -9,14 +9,14 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define MAX_THREADS 2
-#define PORT 8000
+#define PORT 8001
 
 FILE* fp;
 
 void Error_Handling(char* msg)
 {
 	printf("%s\n", msg);
-	exit(1);
+
 }
 
 int Add(char *filename)
@@ -106,63 +106,68 @@ DWORD WINAPI Modify(LPVOID lpParam)
 
 DWORD WINAPI Update(LPVOID lpParam)
 {
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
-	char senddata[80];
+	while (1) {
+		WSADATA wsaData;
+		WSAStartup(MAKEWORD(2, 2), &wsaData);
+		char senddata[80];
 
-	SOCKET Serv_sock, Clnt_sock;
-	Serv_sock = socket(AF_INET, SOCK_STREAM, 0);
+		SOCKET Serv_sock, Clnt_sock;
+		Serv_sock = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (Serv_sock == INVALID_SOCKET)
-		Error_Handling("socket() Error!");
+		if (Serv_sock == INVALID_SOCKET)
+			Error_Handling("socket() Error!");
 
-	SOCKADDR_IN Serv_addr, Clnt_addr;
-	Serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	Serv_addr.sin_port = htons(PORT);
-	Serv_addr.sin_family = AF_INET;
+		SOCKADDR_IN Serv_addr, Clnt_addr;
+		Serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		Serv_addr.sin_port = htons(PORT);
+		Serv_addr.sin_family = AF_INET;
 
-	if (bind(Serv_sock, (SOCKADDR*)&Serv_addr, sizeof(SOCKADDR)) == SOCKET_ERROR)
-		Error_Handling("bind() Error!");
+		if (bind(Serv_sock, (SOCKADDR*)&Serv_addr, sizeof(SOCKADDR)) == SOCKET_ERROR)
+			Error_Handling("bind() Error!");
 
-	if (listen(Serv_sock, 5) == SOCKET_ERROR)
-		Error_Handling("listen() Error!");
+		if (listen(Serv_sock, 5) == SOCKET_ERROR)
+			Error_Handling("listen() Error!");
 
-	int size = sizeof(SOCKADDR);
-	while (1)
-	{
-		if ((Clnt_sock = accept(Serv_sock, (SOCKADDR*)&Clnt_addr, &size)) == INVALID_SOCKET)
-			Error_Handling("accept() Error");
-
-		for (int i = 0; i < 3; i++)
+		int size = sizeof(SOCKADDR);
+		while (1)
 		{
-			if (i == 0)
-				fp = fopen("ClassID.txt", "rb");
-			else if (i == 1)
-				fp = fopen("ProcessName.txt", "rb");
-			else if (i == 2)
-				fp = fopen("Hash.txt", "rb");
-			fseek(fp, 0, SEEK_END);
-			char* clntlen = (char*)calloc(64, 1);
-			char* servlen = (char*)calloc(64, 1);
-			itoa(ftell(fp), servlen, 10);
-			recv(Clnt_sock, clntlen, 64, 0); // length file length
-			if (strcmp(clntlen, servlen) == 0)
-				send(Clnt_sock, "OK", 3, 0);
-			else
+			if ((Clnt_sock = accept(Serv_sock, (SOCKADDR*)&Clnt_addr, &size)) == INVALID_SOCKET)
+				Error_Handling("accept() Error");
+
+			for (int i = 0; i < 3; i++)
 			{
-				send(Clnt_sock, "NO", 3, 0); // < 이런 부분 3로 줄이고
-				char* temp = (char*)calloc(atoi(servlen), 1);
-				fseek(fp, 0, SEEK_SET);
-				fread(temp, sizeof(char), atoi(servlen), fp);
-				send(Clnt_sock, servlen, 64, 0);
-				send(Clnt_sock, temp, atoi(servlen), 0);
-				free(temp);
-				free(clntlen);
-				free(servlen);
+				if (i == 0)
+					fp = fopen("ClassID.txt", "rb");
+				else if (i == 1)
+					fp = fopen("ProcessName.txt", "rb");
+				else if (i == 2)
+					fp = fopen("Hash.txt", "rb");
+				char* clntlen = (char*)calloc(64, 1);
+				char* servlen = (char*)calloc(64, 1);
+				fseek(fp, 0, SEEK_END);
+				itoa(ftell(fp), servlen, 10);
+				recv(Clnt_sock, clntlen, 64, 0); // length file length
+				if (strcmp(clntlen, servlen) == 0)
+					send(Clnt_sock, "OK", 3, 0);
+				else
+				{
+					send(Clnt_sock, "NO", 3, 0); // < 이런 부분 3로 줄이고
+					char* temp = (char*)calloc(atoi(servlen), 1);
+					fseek(fp, 0, SEEK_SET);
+					fread(temp, sizeof(char), atoi(servlen), fp);
+					send(Clnt_sock, servlen, 64, 0);
+					send(Clnt_sock, temp, atoi(servlen), 0);
+					free(temp);
+					free(clntlen);
+					free(servlen);
+				}
+
+				fclose(fp);
 			}
 		}
 		closesocket(Clnt_sock);
 		closesocket(Serv_sock);
+		WSACleanup();
 	}
 }
 

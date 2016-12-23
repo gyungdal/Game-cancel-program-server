@@ -1,5 +1,0 @@
-﻿  main.c
-d:\language\c++\gamecancelserver\server\main.c(147): warning C4133: '함수': 'uint32_t *'과(와) 'char *' 사이의 형식이 호환되지 않습니다.
-d:\language\c++\gamecancelserver\server\main.c(111): warning C4101: 'senddata' :참조되지 않은 지역 변수입니다.
-  Server.vcxproj -> D:\Language\C++\gameCancelServer\x64\Debug\Server.exe
-  Server.vcxproj -> D:\Language\C++\gameCancelServer\x64\Debug\Server.pdb (Full PDB)
